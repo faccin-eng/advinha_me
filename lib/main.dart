@@ -20,20 +20,22 @@ class MenuApp extends StatelessWidget {
         '/mimica': (context) => JogoScreen(
           titulo: 'Jogo da Mímica',
           assetPath: 'assets/mimica.json',
-          corFundo: Color.fromRGBO(110, 110, 201, 0.8),
-          corBotaoVoltar: Color.fromRGBO(179, 51, 128, 1),
-          corBotaoGerar: Color.fromRGBO(51, 128, 0, 1),
-          corTexto: Colors.white,
+          corFundo: Color.fromRGBO(55, 45, 85, 1),
+          corBotaoVoltar: Color.fromRGBO(126, 78, 78, 0),
+          corBarraSuperior: Color.fromRGBO(45, 85, 65, 0.76),
+          corBotaoGerar: Color.fromRGBO(80, 140, 100, 1),
+          corTexto: const Color.fromARGB(255, 255, 255, 255),
           modoPaisagem: false,
           usarTemporizador: false,
         ),
         '/advinha': (context) => JogoScreen(
           titulo: 'Advinha Quem',
           assetPath: 'assets/advinha.json',
-          corFundo: Color.fromRGBO(89, 89, 136, 0.98),
-          corBotaoVoltar: Color.fromRGBO(179, 51, 128, 1),
-          corBotaoGerar: Color.fromRGBO(0, 128, 179, 1),
-          corTexto: Colors.black,
+          corFundo: Color.fromRGBO(45, 85, 65, 1),
+          corBotaoVoltar: Color.fromRGBO(126, 78, 78, 0), // transparente
+          corBarraSuperior: Color.fromARGB(122, 119, 0, 113),
+          corBotaoGerar: Color.fromRGBO(120, 80, 160, 1),
+          corTexto: const Color.fromARGB(255, 255, 255, 255),
           modoPaisagem: true,
           usarTemporizador: true,
         ),
@@ -49,47 +51,57 @@ class MenuScreen extends StatelessWidget{
       appBar: AppBar(
         title: Text('Advinha-Me'),
         centerTitle: true,
-        backgroundColor: Color.fromRGBO(131, 138, 0, 1),
+        backgroundColor: Color.fromRGBO(60, 80, 100, 1),
+        titleTextStyle: TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: const Color.fromARGB(255, 0, 0, 0), // ou a cor que você preferir
+  ),
       ),
       body: Container(
-        color: const Color.fromARGB(255, 7, 31, 26),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 500,
-              height: 80,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromRGBO(102, 0, 128, 1),
-                  foregroundColor: Colors.black,
-                  textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                onPressed: (){
-                  Navigator.pushNamed(context, '/mimica');
-                },
-                child: Text('Jogo da Mimica'),
-                ),
-              ),
-              SizedBox(height:20),
-              SizedBox(
-                width: 500,
-                height: 80,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(0, 102, 0, 1),
-                    foregroundColor: Colors.black,
-                    textStyle: TextStyle(fontSize:20, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: (){
-                    Navigator.pushNamed(context, '/advinha');
-                  },
-                  child: Text('Advinha Quem')
-              ),
+  color: const Color.fromRGBO(25, 25, 35, 1),
+  width: double.infinity,
+  height: double.infinity,
+  child: Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 300, // Tamanho fixo menor
+          height: 80,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromRGBO(120, 80, 160, 1),
+              foregroundColor: Colors.black,
+              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-          ],
-        )
-      ),
+            onPressed: (){
+              Navigator.pushNamed(context, '/mimica');
+            },
+            child: Text('Jogo da Mimica'),
+          ),
+        ),
+        SizedBox(height: 20),
+        SizedBox(
+          width: 300, // Tamanho fixo menor
+          height: 80,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromRGBO(80, 140, 100, 1),
+              foregroundColor: Colors.black,
+              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            onPressed: (){
+              Navigator.pushNamed(context, '/advinha');
+            },
+            child: Text('Advinha Quem')
+          ),
+        ),
+      ],
+    )
+  ),
+),
     );
   }
 }
@@ -98,6 +110,7 @@ class JogoScreen extends StatefulWidget {
   final String assetPath;
   final Color corFundo;
   final Color corBotaoVoltar;
+  final Color corBarraSuperior;
   final Color corBotaoGerar;
   final Color corTexto;
   final bool modoPaisagem;
@@ -108,6 +121,7 @@ class JogoScreen extends StatefulWidget {
     required this.assetPath,
     required this.corFundo,
     required this.corBotaoVoltar,
+    required this.corBarraSuperior,
     required this.corBotaoGerar,
     required this.corTexto,
     required this.modoPaisagem,
@@ -120,6 +134,7 @@ class JogoScreen extends StatefulWidget {
 
 class _JogoScreenState extends State<JogoScreen> {
   List<String> _palavras = [];
+  List<String> _palavrasUsadas = [];
   String _palavraAtual = '';
   bool _mostraPalavra = false; //se a palavra é exibida em função do temporizador
   int _contador = 3;
@@ -167,10 +182,16 @@ class _JogoScreenState extends State<JogoScreen> {
 
   void _gerarNovaPalavra() {
     if (_palavras.isEmpty) return;
+    if (_palavrasUsadas.length >= _palavras.length){
+      _palavrasUsadas.clear();
+    }
+    List<String> palavrasDisponiveis = _palavras.where((palavra) => !_palavrasUsadas.contains(palavra)).toList();
+    
     final rnd = Random();
-    final idx = rnd.nextInt(_palavras.length);
+    final idx = rnd.nextInt(palavrasDisponiveis.length);
     setState(() {
-      _palavraAtual = _palavras[idx];
+      _palavraAtual = palavrasDisponiveis[idx];
+      _palavrasUsadas.add(_palavraAtual);
       _mostraPalavra = true;
     });
   }
@@ -202,7 +223,7 @@ void _startTemporizador(){
       backgroundColor: widget.corFundo,
       appBar: AppBar(
         title: Text(widget.titulo),
-        backgroundColor: widget.corBotaoVoltar,
+        backgroundColor: widget.corBarraSuperior,
         centerTitle: true,
       ),
       body: SafeArea(
